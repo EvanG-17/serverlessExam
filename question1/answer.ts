@@ -55,9 +55,9 @@ function getMatches(criteria: (t: Transporter) => boolean): Transporter[] {
 
 
   // Uncomment and Recomment as nessecary to select filtered result
-  //const filteredTransporters = getMatches((t) => t.color === "Blue")
+  const filteredTransporters = getMatches((t) => t.color === "Blue")
   //const filteredTransporters = getMatches((t) => t.color === "Red" && "registration" in t)
-  const filteredTransporters = getMatches((t) => t.color === "Blue" && "registration" in t)
+  //const filteredTransporters = getMatches((t) => t.color === "Blue" && "registration" in t)
   console.log(filteredTransporters);
 
   

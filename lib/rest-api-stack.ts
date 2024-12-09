@@ -50,6 +50,25 @@ export class RestAPIStack extends cdk.Stack {
     });
 
     // Functions
+    const getMovieByAwardsFn = new lambdanode.NodejsFunction(
+      this,
+      "GetMovieByAwardsFn",
+      {
+        architecture: lambda.Architecture.ARM_64,
+        runtime: lambda.Runtime.NODEJS_18_X,
+        entry: `${__dirname}/../lambdas/getMovieByAwards.ts`,
+        timeout: cdk.Duration.seconds(10),
+        memorySize: 128,
+        bundling: {
+          externalModules: ["aws-sdk"],
+        },
+        environment: {
+          MOVIE_AWARDS_TABLE_NAME: movieAwardsTable.tableName,
+          REGION: "eu-west-1",
+        },
+      }
+    );
+
     const getMovieByIdFn = new lambdanode.NodejsFunction(
       this,
       "GetMovieByIdFn",
@@ -111,7 +130,7 @@ export class RestAPIStack extends cdk.Stack {
             [movieCrewTable.tableName]: generateBatch(movieCrew),
           },
         },
-        physicalResourceId: custom.PhysicalResourceId.of("moviesddbInitData"), //.of(Date.now().toString()),
+        physicalResourceId: custom.PhysicalResourceId.of("moviesddbInitData"),
       },
       policy: custom.AwsCustomResourcePolicy.fromSdkCalls({
         resources: [
@@ -158,10 +177,20 @@ export class RestAPIStack extends cdk.Stack {
       new apig.LambdaIntegration(deleteMovieByIdFn, { proxy: true })
     );
 
-    // Permissions;
+    const awardsEndpoint = api.root.addResource("awards");
+    const awardBodyEndpoint = awardsEndpoint.addResource("{awardBody}");
+    const awardMovieEndpoint = awardBodyEndpoint.addResource("movies").addResource("{movieId}");
+
+    awardMovieEndpoint.addMethod(
+      "GET",
+      new apig.LambdaIntegration(getMovieByAwardsFn, { proxy: true })
+    );
+
+    // Permissions
     moviesTable.grantReadData(getMovieByIdFn);
     moviesTable.grantReadWriteData(deleteMovieByIdFn);
     movieCastsTable.grantReadData(getMovieCastMembersFn);
     movieCastsTable.grantReadData(getMovieByIdFn);
+    movieAwardsTable.grantReadData(getMovieByAwardsFn);
   }
 }
