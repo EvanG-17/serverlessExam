@@ -5,6 +5,7 @@ import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 const dynamoDbClient = createDynamoDbClient();
 const { MOVIE_AWARDS_TABLE_NAME } = process.env;
 
+//used getMovieById as inspiration for this class layout etc
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     console.log("Event: ", JSON.stringify(event));
